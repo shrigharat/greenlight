@@ -3,8 +3,6 @@
     "[go]": {
         "editor.formatOnSave": true
     },
-    "gopls": {
-        "formatting.gofumpt": true
-    },
-    "go.formatTool": "gofmt"
+    "go.formatTool": "gofmt",
+    "editor.formatOnSave": true
 }
