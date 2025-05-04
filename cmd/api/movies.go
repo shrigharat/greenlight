@@ -171,4 +171,41 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Title string
+		Genres []string
+		data.Filters
+	}
+	input.SortSafeList = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
+
+	v := validator.New()
+
+	queryParams := r.URL.Query()
+
+	input.Title = app.readString(queryParams, "title", "")
+	input.Genres = app.readCSV(queryParams, "genres", []string{})
+	input.Page = app.readInt(queryParams, "page", 1, v)
+	input.PageSize = app.readInt(queryParams, "page_size", 20, v)
+	input.Sort = app.readString(queryParams, "sort", "id")
+
+	data.ValidateFilters(v, input.Filters)
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	movies,err := app.models.Movies.GetAll(input.Title, input.Genres)
+	if err !=nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
 
