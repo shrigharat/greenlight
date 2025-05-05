@@ -98,7 +98,7 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		Title   *string       `json:"title"`
 		Year    *int32        `json:"year"`
 		Runtime *data.Runtime `json:"runtime"`
-		Genres  []string     `json:"genres"`
+		Genres  []string      `json:"genres"`
 	}
 	err = app.readJSON(w, r, &input)
 	if err != nil {
@@ -106,11 +106,11 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if input.Title != nil{
+	if input.Title != nil {
 		movie.Title = *input.Title
 	}
 
-	if input.Year != nil{
+	if input.Year != nil {
 		movie.Year = *input.Year
 	}
 
@@ -171,4 +171,39 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Title  string
+		Genres []string
+		data.Filters
+	}
+	input.SortSafeList = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
 
+	v := validator.New()
+
+	queryParams := r.URL.Query()
+
+	input.Title = app.readString(queryParams, "title", "")
+	input.Genres = app.readCSV(queryParams, "genres", []string{})
+	input.Page = app.readInt(queryParams, "page", 1, v)
+	input.PageSize = app.readInt(queryParams, "page_size", 20, v)
+	input.Sort = app.readString(queryParams, "sort", "id")
+
+	data.ValidateFilters(v, input.Filters)
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.Genres, input.Filters)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies, "metadata": metadata}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
