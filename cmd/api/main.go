@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 
@@ -81,25 +80,11 @@ func main() {
 		models: data.NewModels(db),
 	}
 
-	router := app.routes()
-
-	serverAddress := fmt.Sprintf("127.0.0.1:%d", cfg.port)
-
-	server := &http.Server{
-		Addr:         serverAddress,
-		Handler:      router,
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  time.Second * 5,
-		WriteTimeout: time.Second * 10,
-		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
+	err = app.serve()
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
 	}
-
-	logger.Info("starting server", "addr", server.Addr, "env", cfg.env)
-
-	err = server.ListenAndServe()
-
-	logger.Error(err.Error())
-	os.Exit(1)
 }
 
 func openDB(cfg config) (*sql.DB, error) {
