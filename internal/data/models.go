@@ -12,6 +12,7 @@ var (
 
 type Models struct {
 	Movies MovieModel
+	Users UserModel
 }
 
 func NewModels(db *sql.DB) Models {
