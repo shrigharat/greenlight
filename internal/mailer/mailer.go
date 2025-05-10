@@ -9,7 +9,7 @@ import (
 	"github.com/go-mail/mail/v2"
 )
 
-// go:embed "templates"
+//go:embed "templates"
 var templateFS embed.FS
 
 type Mailer struct {
@@ -45,7 +45,7 @@ func (m Mailer) Send(recipient, templateFile string, data any) error {
 	}
 
 	htmlBody := new(bytes.Buffer)
-	err = tmpl.ExecuteTemplate(plainBody, "htmlBody", data)
+	err = tmpl.ExecuteTemplate(htmlBody, "htmlBody", data)
 	if err != nil {
 		return err
 	}
