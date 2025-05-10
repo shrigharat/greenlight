@@ -132,6 +132,7 @@ func (app *application) readInt(queryParams url.Values, key string, defaultValue
 }
 
 func (app *application) background(fn func()) {
+	app.wg.Add(1)
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
@@ -140,5 +141,6 @@ func (app *application) background(fn func()) {
 		}()
 
 		fn()
+		app.wg.Done()
 	}()
 }
