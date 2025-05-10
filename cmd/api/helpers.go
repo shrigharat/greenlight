@@ -130,3 +130,15 @@ func (app *application) readInt(queryParams url.Values, key string, defaultValue
 
 	return value
 }
+
+func (app *application) background(fn func()) {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.Error(fmt.Sprintf("%v", err))
+			}
+		}()
+
+		fn()
+	}()
+}
