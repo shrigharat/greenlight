@@ -27,6 +27,7 @@ func (app *application) serve() error {
 
 	shutdownError := make(chan error)
 
+	// graceful shutdown logic
 	go func() {
 		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
@@ -35,7 +36,14 @@ func (app *application) serve() error {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel()
 
-		shutdownError <- server.Shutdown(ctx)
+		err := server.Shutdown(ctx)
+		if err != nil {
+			shutdownError <- err
+		}
+
+		app.logger.Info("completing background tasks", "addr", server.Addr)
+		app.wg.Wait()
+		shutdownError <- nil
 	}()
 
 	app.logger.Info("starting server", "addr", server.Addr, "env", app.config.env)
