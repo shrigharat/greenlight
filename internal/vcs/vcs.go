@@ -8,6 +8,7 @@ import (
 func Version() string {
 	var revision string
 	var modified bool
+	var time string
 
 	buildInfo, ok := debug.ReadBuildInfo()
 	if ok {
@@ -17,13 +18,15 @@ func Version() string {
 				revision = s.Value
 			case "vcs.modified":
 				modified = s.Value == "true"
+			case "vcs.time":
+				time = s.Value
 			}
 		}
 	}
 
 	if modified {
-		return fmt.Sprintf("%s-dirty", revision)
+		return fmt.Sprintf("%s-%s-dirty", time, revision)
 	}
 
-	return revision
+	return fmt.Sprintf("%s-%s", time, revision)
 }
