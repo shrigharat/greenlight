@@ -12,16 +12,16 @@ import (
 )
 
 const (
-	ActivationScope = "activation"
+	ActivationScope     = "activation"
 	AuthenticationScope = "authentication"
 )
 
 type Token struct {
-	PlainText string `json:"token"`
-	Hash []byte `json:"-"`
-	UserID int64 `json:"-"`
-	Expiry time.Time `json:"expiry"`
-	Scope string `json:"-"`
+	PlainText string    `json:"token"`
+	Hash      []byte    `json:"-"`
+	UserID    int64     `json:"-"`
+	Expiry    time.Time `json:"expiry"`
+	Scope     string    `json:"-"`
 }
 
 type TokenModel struct {
@@ -32,9 +32,9 @@ func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error
 	token := &Token{
 		UserID: userID,
 		Expiry: time.Now().Add(ttl),
-		Scope: scope,
+		Scope:  scope,
 	}
-	
+
 	randomBytes := make([]byte, 16)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
@@ -90,6 +90,6 @@ func (m TokenModel) DeleteAllForUser(userID int64, scope string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_,err := m.DB.ExecContext(ctx, query, userID, scope)
+	_, err := m.DB.ExecContext(ctx, query, userID, scope)
 	return err
 }
